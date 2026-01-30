@@ -9,7 +9,6 @@ def load_prompts():
     return df
 
 def validate_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-
     required_columns = {"prompt", "for_devs"}
     missing = required_columns - set(df.columns)
 
@@ -24,8 +23,13 @@ def validate_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
+def get_all_documents(df: pd.DataFrame) -> list[str]:
+    return df["prompt"].tolist()
+
 if __name__ == "__main__":
     prompts_df = load_prompts()
+    prompts_df = validate_dataframe(prompts_df)
+    print(len(get_all_documents(prompts_df)))
 
     print(prompts_df.head())
     print(prompts_df.columns)
