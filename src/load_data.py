@@ -61,17 +61,30 @@ def get_documents_by_category(df: pd.DataFrame) -> dict[str, list[str]]:
 
     return grouped_docs
 
+def compute_dataset_stats(df: pd.DataFrame) -> dict:
+    stats = {
+        "total_documents": len(df),
+        "documents_per_category": {},
+    }
+
+    for label_name in LABELS_MAP.values():
+        count = (df[LABEL_COLUMN] == label_name).sum()
+        stats["documents_per_category"][label_name] = int(count)
+
+    return stats
+
 if __name__ == "__main__":
     bbc_text_df = load_raw_csv()
     bbc_text_df = validate_dataframe(bbc_text_df)
-    print(len(get_all_documents(bbc_text_df)))
-    grouped_docs_by_types = get_documents_by_category(bbc_text_df)
-    print(f"len(grouped_docs_by_types['tech']): {len(grouped_docs_by_types['tech'])}")
-    print(f"len(grouped_docs_by_types['business']): {len(grouped_docs_by_types['business'])}")
-    print(f"len(grouped_docs_by_types['sport']): {len(grouped_docs_by_types['sport'])}")
-    print(f"len(grouped_docs_by_types['entertainment']): {len(grouped_docs_by_types['entertainment'])}")
-    print(f"len(grouped_docs_by_types['politics']): {len(grouped_docs_by_types['politics'])}")
 
-    print(bbc_text_df.head())
-    print(bbc_text_df.columns)
-    print(f"Number of rows: {len(bbc_text_df)}")
+    stats = compute_dataset_stats(bbc_text_df)
+    grouped_docs_by_types = get_documents_by_category(bbc_text_df)
+
+    print(f"Total documents: {stats['total_documents']}")
+    for cat, count in stats["documents_per_category"].items():
+        print(f"{cat}: {count}")
+
+    print("\n=== Sample Document ===")
+    sample_category = next(iter(grouped_docs_by_types))
+    print(f"Category: {sample_category}")
+    print(grouped_docs_by_types[sample_category][0][:400], "...")
