@@ -13,7 +13,7 @@ def build_vocabulary(documents: List[List[str]]) -> dict:
 
     return vocab
 
-def build_bow(documents: List[List[str]], binary: bool = False) -> Tuple[csr_matrix, dict]:
+def build_count_or_binary_bow(documents: List[List[str]], binary: bool = False) -> Tuple[csr_matrix, dict]:
     vocab = build_vocabulary(documents)
 
     rows = []
@@ -34,3 +34,14 @@ def build_bow(documents: List[List[str]], binary: bool = False) -> Tuple[csr_mat
     )
 
     return sparse_matrix, vocab
+
+def build_bow(
+    documents: List[List[str]],
+    variant: str = "count"
+):
+    if variant == "count":
+        return build_count_or_binary_bow(documents, binary = False)
+    elif variant == "binary":
+        return build_count_or_binary_bow(documents, binary = True)
+    else:
+        raise ValueError(f"Unknown BoW variant: {variant}")
