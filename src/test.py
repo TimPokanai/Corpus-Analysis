@@ -1,49 +1,85 @@
-from load_data import (
-    load_raw_csv,
-    validate_dataframe,
-    get_documents_by_category,
-)
-from preprocess import preprocess_documents_by_category
+from load_data import load_raw_csv, validate_dataframe, get_documents_by_category
+from preprocess import preprocess_corpus
 from build_bow import build_bow
+from naive_bayes import (
+    compute_log_likelihood_ratio_multiclass,
+    top_k_words
+)
+
+import numpy as np
 
 
-def test_bow_variants():
-    # Load and validate data
-    df = validate_dataframe(load_raw_csv())
+def test_naive_bayes_pipeline():
+    print("=== Loading and validating data ===")
+    df = load_raw_csv()
+    df = validate_dataframe(df)
+
     grouped_docs = get_documents_by_category(df)
 
-    # Pick one category to inspect (keeps output readable)
-    category = "sport"
-    raw_docs = grouped_docs[category]
+    # Limit to a few categories for faster testing
+    categories = list(grouped_docs.keys())
+    print(f"Categories: {categories}")
 
-    # Preprocess
-    processed_docs = preprocess_documents_by_category(
-        {category: raw_docs},
-        use_stemming=True,
-    )[category]
+    print("\n=== Preprocessing documents ===")
+    processed_docs = {}
+    for cat in categories:
+        processed_docs[cat] = preprocess_corpus(grouped_docs[cat])
 
-    print(f"\nTesting category: {category}")
-    print(f"Number of documents: {len(processed_docs)}")
+    print("\n=== Building BoW representations ===")
+    bows = {}
+    vocab = None
 
-    # -------------------------
-    # Count BoW
-    # -------------------------
-    X_count, vocab_count = build_bow(processed_docs, variant="count")
-    print("\nCount BoW")
-    print("Shape:", X_count.shape)
-    print("Sample vocab items:", list(vocab_count.items())[:10])
-    print("First document vector (non-zero):")
-    print(X_count[9].nonzero(), X_count[9].data)
+    # First pass: build unified vocabulary across all categories
+    all_docs = []
+    for docs in processed_docs.values():
+        all_docs.extend(docs)
+    
+    # Build vocabulary from all documents
+    _, vocab = build_bow(all_docs, variant="count")
 
-    # -------------------------
-    # Binary BoW
-    # -------------------------
-    X_binary, vocab_binary = build_bow(processed_docs, variant="binary")
-    print("\nBinary BoW")
-    print("Shape:", X_binary.shape)
-    print("First document vector (non-zero):")
-    print(X_binary[9].nonzero(), X_binary[9].data)
+    # Second pass: build BoW for each category using the unified vocabulary
+    for cat, docs in processed_docs.items():
+        X, _ = build_bow(docs, variant="count", vocab=vocab)
+        bows[cat] = X
+        print(f"{cat}: BoW shape = {X.shape}")
+
+    vocab_size = len(vocab)
+    print(f"\nVocabulary size: {vocab_size}")
+
+    # Sanity check: all matrices must share the same vocab size
+    for cat, X in bows.items():
+        assert X.shape[1] == vocab_size, "Vocabulary size mismatch!"
+
+    print("\n=== Testing log-likelihood ratio computation ===")
+    target_category = categories[0]
+    llr = compute_log_likelihood_ratio_multiclass(
+        bows_by_category=bows,
+        target_category=target_category
+    )
+
+    print(f"LLR vector shape for '{target_category}': {llr.shape}")
+
+    # Basic numerical sanity checks
+    assert llr.shape[0] == vocab_size
+    assert np.all(np.isfinite(llr)), "LLR contains NaN or inf values"
+
+    print("LLR sanity checks passed.")
+
+    print("\n=== Extracting top informative words ===")
+    top_words = top_k_words(llr, vocab, k=10)
+
+    print(f"Top 10 words for category '{target_category}':")
+    for word, score in top_words:
+        print(f"{word:<15} {score:.4f}")
+
+    # Validate ordering
+    scores = [score for _, score in top_words]
+    assert scores == sorted(scores, reverse=True), "Top words not sorted!"
+
+    print("\nTop-word extraction test passed.")
+
+    print("\n=== All Naive Bayes tests PASSED ===")
 
 
 if __name__ == "__main__":
-    test_bow_variants()
+    test_naive_bayes_pipeline()

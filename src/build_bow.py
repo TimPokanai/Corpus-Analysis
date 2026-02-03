@@ -13,8 +13,9 @@ def build_vocabulary(documents: List[List[str]]) -> dict:
 
     return vocab
 
-def build_count_or_binary_bow(documents: List[List[str]], binary: bool = False) -> Tuple[csr_matrix, dict]:
-    vocab = build_vocabulary(documents)
+def build_count_or_binary_bow(documents: List[List[str]], binary: bool = False, vocab: dict = None) -> Tuple[csr_matrix, dict]:
+    if vocab is None:
+        vocab = build_vocabulary(documents)
 
     rows = []
     cols = []
@@ -23,9 +24,10 @@ def build_count_or_binary_bow(documents: List[List[str]], binary: bool = False) 
     for document_id, document in enumerate(documents):
         counts = Counter(document)
         for token, count in counts.items():
-            rows.append(document_id)
-            cols.append(vocab[token])
-            data.append(1 if binary else count)
+            if token in vocab:
+                rows.append(document_id)
+                cols.append(vocab[token])
+                data.append(1 if binary else count)
 
     sparse_matrix = csr_matrix(
         (data, (rows, cols)),
@@ -37,11 +39,12 @@ def build_count_or_binary_bow(documents: List[List[str]], binary: bool = False) 
 
 def build_bow(
     documents: List[List[str]],
-    variant: str = "count"
+    variant: str = "count",
+    vocab: dict = None
 ):
     if variant == "count":
-        return build_count_or_binary_bow(documents, binary = False)
+        return build_count_or_binary_bow(documents, binary = False, vocab=vocab)
     elif variant == "binary":
-        return build_count_or_binary_bow(documents, binary = True)
+        return build_count_or_binary_bow(documents, binary = True, vocab=vocab)
     else:
         raise ValueError(f"Unknown BoW variant: {variant}")
