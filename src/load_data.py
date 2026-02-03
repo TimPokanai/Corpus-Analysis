@@ -1,6 +1,8 @@
 import pandas as pd
 from pathlib import Path
 
+from preprocess import preprocess_documents_by_category
+
 RAW_DATA_PATH = Path("../data/raw/bbc-text.csv")
 
 TEXT_COLUMN = "text"
@@ -88,3 +90,7 @@ if __name__ == "__main__":
     sample_category = next(iter(grouped_docs_by_types))
     print(f"Category: {sample_category}")
     print(grouped_docs_by_types[sample_category][0][:400], "...")
+
+
+    processed_docs_by_types = preprocess_documents_by_category(grouped_docs_by_types)
+    print(processed_docs_by_types["tech"][1][:20])
