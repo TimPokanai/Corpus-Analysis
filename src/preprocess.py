@@ -29,7 +29,7 @@ def preprocess_document(text: str, use_stemming: bool = False) -> List[str]:
 
     # Optional stemming
     if use_stemming:
-        tokens = [STEMMER.stem(t) for t in tokens]
+        tokens = [STEM.stem(t) for t in tokens]
 
     return tokens
 
