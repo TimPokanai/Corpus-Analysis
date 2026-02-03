@@ -74,23 +74,3 @@ def compute_dataset_stats(df: pd.DataFrame) -> dict:
         stats["documents_per_category"][label_name] = int(count)
 
     return stats
-
-if __name__ == "__main__":
-    bbc_text_df = load_raw_csv()
-    bbc_text_df = validate_dataframe(bbc_text_df)
-
-    stats = compute_dataset_stats(bbc_text_df)
-    grouped_docs_by_types = get_documents_by_category(bbc_text_df)
-
-    print(f"Total documents: {stats['total_documents']}")
-    for cat, count in stats["documents_per_category"].items():
-        print(f"{cat}: {count}")
-
-    print("\n=== Sample Document ===")
-    sample_category = next(iter(grouped_docs_by_types))
-    print(f"Category: {sample_category}")
-    print(grouped_docs_by_types[sample_category][0][:400], "...")
-
-
-    processed_docs_by_types = preprocess_documents_by_category(grouped_docs_by_types)
-    print(processed_docs_by_types["tech"][1][:20])
