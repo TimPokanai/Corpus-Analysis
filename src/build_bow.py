@@ -1,7 +1,6 @@
 from typing import List, Tuple
 from collections import Counter
 
-import numpy as np
 from scipy.sparse import csr_matrix
 
 def build_vocabulary(documents: List[List[str]]) -> dict:
@@ -37,6 +36,7 @@ def build_count_or_binary_bow(documents: List[List[str]], binary: bool = False, 
 
     return sparse_matrix, vocab
 
+# Helper function to build bag of words in either count or binary variant
 def build_bow(
     documents: List[List[str]],
     variant: str = "count",
