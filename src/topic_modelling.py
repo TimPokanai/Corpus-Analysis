@@ -5,10 +5,10 @@ from gensim.models import LdaModel
 
 from build_bow import build_bow, build_vocabulary
 
-def build_dictionary_and_corpus(documents: List[List[str]]) -> Tuple[Dictionary, List[List[Tuple[int, int]]]]:
+def build_dictionary_and_corpus(documents: List[List[str]], bow_variant: str = "count") -> Tuple[Dictionary, List[List[Tuple[int, int]]]]:
     # Build vocabulary and sparse matrix using my BoW implementation
     vocab = build_vocabulary(documents)
-    bow_matrix, _ = build_bow(documents, variant="count", vocab=vocab)
+    bow_matrix, _ = build_bow(documents, variant=bow_variant, vocab=vocab)
     
     # Create gensim Dictionary from vocabulary mapping
     id2word = {word_id: word for word, word_id in vocab.items()}
@@ -59,13 +59,15 @@ def get_document_topic_distributions(lda_model: LdaModel, corpus) -> List[np.nda
 
 def compute_average_topic_distribution_by_category(
     category_documents: Dict[str, List[List[str]]],
-    lda_model: LdaModel) -> Dict[str, np.ndarray]:
+    lda_model: LdaModel,
+    bow_variant: str = "count",
+) -> Dict[str, np.ndarray]:
     category_topic_avgs = {}
 
     for category, docs in category_documents.items():
         # Build corpus using custom BoW implementation
         vocab = build_vocabulary(docs)
-        bow_matrix, _ = build_bow(docs, variant="count", vocab=vocab)
+        bow_matrix, _ = build_bow(docs, variant=bow_variant, vocab=vocab)
         
         # Convert sparse matrix to gensim corpus format
         corpus = []
