@@ -7,11 +7,14 @@ from build_bow import build_bow
 from naive_bayes import compute_log_likelihood_ratio_multiclass, top_k_words
 from topic_modelling import *
 
-def print_dataset_info(df) -> None:
+def print_dataset_info(df, processed_docs: Dict[str, list]) -> None:
     stats = compute_dataset_stats(df)
-    print("Total documents: {}\n".format(stats['total_documents']))
+    print("Total documents: {}\n".format(stats["total_documents"]))
+    print("Category         Docs   AvgTokens")
     for cat, count in stats["documents_per_category"].items():
-        print("  {:<15} {}".format(cat, count))
+        docs = processed_docs.get(cat, [])
+        avg_tokens = (sum(len(doc) for doc in docs) / len(docs)) if docs else 0
+        print(f"  {cat:<14} {count:>4}   {avg_tokens:>8.1f}")
 
 def analyze_naive_bayes_configuration(
     processed_docs: Dict[str, list],
@@ -108,14 +111,13 @@ def main():
     df = load_raw_csv()
     df = validate_dataframe(df)
 
-    print_dataset_info(df)
-
     grouped_docs = get_documents_by_category(df)
 
     # Preprocess with and without stemming
     processed_without_stem = preprocess_documents_by_category(
         grouped_docs, use_stemming=False
     )
+    print_dataset_info(df, processed_without_stem)
     processed_with_stem = preprocess_documents_by_category(
         grouped_docs, use_stemming=True
     )

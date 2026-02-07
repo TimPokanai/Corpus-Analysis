@@ -12,6 +12,7 @@ nltk.download("stopwords", quiet=True)
 
 STOP_WORDS = set(stopwords.words("english"))
 STOP_WORDS.add("said")  # Add "said" to filter out common BBC reporting word
+STOP_WORDS.add("would")  # Add "would" to filter out common BBC reporting word
 STEM = PorterStemmer()
 
 def preprocess_document(text: str, use_stemming: bool = False) -> List[str]:
