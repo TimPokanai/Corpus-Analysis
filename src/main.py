@@ -81,13 +81,18 @@ def analyze_lda_configuration(
     lda = train_lda_model(corpus, dictionary, num_topics=num_topics)
 
     # Get top terms per topic
-    topics = get_top_terms_per_topic(lda, num_terms=10)
+    topics = get_top_terms_per_topic(lda, num_terms=25)
 
-    print(f"\nTop Terms per Topic:")
+    print(f"\nTop Terms per Topic (Top 25):")
     print("-" * 75)
+    column_width = 18
+    terms_per_row = 5
     for topic_id, terms in topics.items():
-        terms_str = ", ".join([word for word, _ in terms[:5]])
-        print(f"Topic {topic_id}: {terms_str}")
+        print(f"Topic {topic_id}:")
+        formatted_terms = [f"{word[:12]} {prob:.3f}" for word, prob in terms]
+        for i in range(0, len(formatted_terms), terms_per_row):
+            row = formatted_terms[i:i + terms_per_row]
+            print("  " + "".join([f"{cell:<{column_width}}" for cell in row]))
 
     # Compute average topic distribution by category
     category_docs = {
